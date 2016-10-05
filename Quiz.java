@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
 
 /**
@@ -15,7 +16,7 @@ import javax.swing.SwingWorker;
  * @editor Mike Lee
  */
 public class Quiz implements ActionListener{
-	
+
 	private int _wordCount;
 	private int _totalWords;
 	private int _attempts;
@@ -26,7 +27,7 @@ public class Quiz implements ActionListener{
 	private Statistics _stats;
 	private SpellingAid _parent;
 	private WordList _wordList;
-	
+
 	/**
 	 * Initializes fields, selects words for the quiz, and checks that there are enough words to perform a quiz.
 	 * @param level - the spelling level of the quiz to be created
@@ -42,15 +43,15 @@ public class Quiz implements ActionListener{
 		_words = new ArrayList<>();
 		_lists = wordList.getWords();
 		_wordList = wordList;
-		
+
 		selectWords(level);
 		_totalWords = Math.min(_words.size(), 10);
-		
+
 		if (_totalWords == 0) {
 			JOptionPane.showMessageDialog(null, "Not enough words to make a quiz!", "Uh oh!", JOptionPane.ERROR_MESSAGE);
 		}
 	}
-	
+
 	/**
 	 * Selects 10 or less random words from the WordList, to be used in the quiz. Only selects less than 10 words
 	 * if there are less than 10 words to select from. In those situations, it selects all words available, in 
@@ -76,17 +77,41 @@ public class Quiz implements ActionListener{
 	public boolean sayNextWord(String line) {
 		_wordCount++;
 		if (_wordCount <= _totalWords) {
+
 			_attempts = 0;
 
 			_previousWords.add(_wordCount - 1);
 			if (line == null) {
-				sayWord(_words.get(_wordCount - 1));
+				appendHint(_words.get(_wordCount - 1));
+
+				ArrayList<String> temp = new ArrayList<String>(); 
+				temp.add("please spell");
+				temp.add(_words.get(_wordCount - 1));
+				sayWord(temp, 1.5);
+
 			} else {
-				sayWord(line + " " + _words.get(_wordCount - 1));
+				String copyLine = line;
+				copyLine = copyLine.replace(" ", "");
+				copyLine = copyLine.replace(".", "");
+				_parent.appendPreviousInput(copyLine+"\n");	
+				_parent.appendPreviousInput("Please spell:   ");
+				appendHint(_words.get(_wordCount - 1) );
+
+				ArrayList<String> temp = new ArrayList<String>(); 
+				temp.add(line);
+				temp.add("please spell");
+				temp.add( _words.get(_wordCount - 1));
+				sayWord(temp, 1.5);
 			}
 			return true;
 		} else {
-			sayWord("Quiz is finished.");
+			_parent.appendPreviousInput("Quiz is finished.\n");
+
+			ArrayList<String> temp = new ArrayList<String>(); 
+			temp.add("Quiz is finished.");
+			sayWord(temp, 1.5);
+
+			_parent.disableInput();
 			// call method in spellingaid to potentially shift up levels
 			if (_masteredWords >= 9 && _wordList.getQuizType() == QuizType.NEW) {
 				// call method from SpellingAid, which allows user to move up levels
@@ -95,79 +120,115 @@ public class Quiz implements ActionListener{
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Repeats the word, allowing the user to relisten to it.
 	 */
 	public void repeatWordWithNoPenalty() {
 		String word = _words.get(_previousWords.get(_previousWords.size() - 1));
-		sayWord(word);
+
+		ArrayList<String> temp = new ArrayList<String>(); 
+		temp.add(word);
+		sayWord(temp, 1.8);
 	}
-	
+
 	/**
 	 * Repeats the last word pronounced, when the user has incorrectly spelled it once.
 	 */
 	public void repeatWord() {
 		String word = _words.get(_previousWords.get(_previousWords.size() - 1));
-		sayWord("Incorrect, Please try again ... ... " + word + ", ... ... " + word);
+		_parent.appendPreviousInput("Incorrect, Please try again\n");
+
+		ArrayList<String> temp = new ArrayList<String>(); 
+		temp.add("Incorrect, Please try again");
+		temp.add(word);
+		temp.add(word);
+		sayWord(temp, 2.2);
 	}
-	
+
 	/**
 	 * Spells the word out for the user, used in review mode when word was failed.
 	 */
 	public void spellWord() {
 		String word = _words.get(_previousWords.get(_previousWords.size() - 1));
 		String spelling = word + " is spelled ... ";
-		
+
 		for (int i = 0; i < word.length(); i++) {
 			spelling += word.charAt(i) + " ... ";
 		}
-		
-		sayWord(spelling);
+
+		ArrayList<String> temp = new ArrayList<String>(); 
+		temp.add(spelling);
+		sayWord(temp, 2.2);
 	}
-	
+
 	/**
 	 * Uses festival to pronounce the string passed in.
 	 * @param word - a String containing what you want to pronounce
 	 */
-	private void sayWord(final String word) {
-		SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+	private void sayWord(final ArrayList<String> wordAL, double pace) {
+		if (wordAL != null & wordAL.size() > 0) {
+			if (pace <= 2.2 && pace >= 0.8) {
+				// disable relisten and input textfield
+				_parent.disableRelistenToWord();
+				_parent.disableInputText();
 
-			@Override
-			protected Void doInBackground() throws Exception {
-				try {
-					File file = new File(".sayText.scm");
+				SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
 
-					if (!file.exists()) {
-						file.createNewFile();
+					@Override
+					protected Void doInBackground() throws Exception {
+						try {
+							File file = new File(".sayText.scm");
+
+							if (!file.exists()) {
+								file.createNewFile();
+							}
+
+							String voice = _parent.getVoice();
+
+							BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile() ));
+
+							bw.write("(" + "voice_" + voice + ")\n");
+
+							bw.write("( Parameter.set  'Duration_Stretch  "+pace+" )");
+
+							for (String s : wordAL) {
+								bw.write("( SayText \"" + s +"\" ) \n");
+								bw.flush();
+							}
+
+							bw.close();
+
+							ProcessBuilder pb = new ProcessBuilder("bash", "-c", "festival -b .sayText.scm");
+
+							Process pro = pb.start();
+
+							pro.waitFor();
+						} catch (IOException e) {
+							e.printStackTrace();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+
+						return null;
 					}
-					
-					String voice = _parent.getVoice();
-					
-					BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-					
-					bw.write("(" + "voice_" + voice + ")\n");
-					
-					bw.write("(SayText \"" + word + " ... ... ... ... \")");
-					
-					bw.close();
-					
-					ProcessBuilder pb = new ProcessBuilder("bash", "-c", "festival -b .sayText.scm");
-					
-					Process pro = pb.start();
-					
-					pro.waitFor();
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				
-				return null;
+					@Override
+					public void done() {
+						if (wordAL.contains("Quiz is finished.") ) {
+							_parent.disableInput();
+						} else {
+							_parent.enableRelistenToWord();
+							_parent.enableInputText();
+							_parent.focusOnJPanel();
+						}
+					}
+
+				};
+
+				worker.execute();
 			}
-			
-		};
-		worker.execute();
+
+		}
 	}
 
 	/**
@@ -182,6 +243,11 @@ public class Quiz implements ActionListener{
 			// do nothing
 		} else {
 			String userWord = trimSpaces(e.getActionCommand());
+			//test
+			if (!userWord.equals("") && !userWord.equals("\n") ) {
+				_parent.appendPreviousInput("You enetered:   "+ userWord + "\n");
+			}
+
 			_attempts++;
 			// if the user spells word correctly
 			if (userWord.toLowerCase().equals(_words.get(_previousWords.get(_previousWords.size() - 1)).toLowerCase())) {
@@ -193,6 +259,7 @@ public class Quiz implements ActionListener{
 					_masteredWords++;
 					_wordList.removeFromFailedList(userWord.toLowerCase());
 				}
+
 				sayNextWord(" ... ... Correct! ... "); // move onto the next word
 			} else { // if the user spells the word wrong
 				if (_attempts == 1) { // if this was their first attempt 
@@ -201,19 +268,21 @@ public class Quiz implements ActionListener{
 					if (_wordList.getQuizType().equals(QuizType.NEW)) { //if this is a new quiz, remove from/add to appropriate lists and add stats
 						_stats.addFailed(_words.get(_previousWords.get(_previousWords.size() - 1)));
 						_wordList.addToFailedList(_words.get(_previousWords.get(_previousWords.size() - 1)));
+
 						sayNextWord("Incorrect. ... ");
 					} else { //if this is a review quiz, give user another chance to spell word, spelling it out for them
 						spellWord(); //however, don't remove from failedlist, even if they get it right, because they clearly need more practice
 						_stats.addFailed(_words.get(_previousWords.get(_previousWords.size() - 1)));
 					}
 				} else { //if they fail the extra try they get in review quizzes
+
 					sayNextWord(" ... ... Incorrect. ... ");
 				}
 			}
 		}
 	}
-	
-	
+
+
 	/**
 	 * Removes the spaces from the given string.
 	 * @param word - string to remove spaces from
@@ -228,7 +297,7 @@ public class Quiz implements ActionListener{
 		}
 		return returnWord;
 	}
-	
+
 	/**
 	 * Checks the given string if it consists of only A-Z, a-z , apostrophes, and spaces.
 	 * @param input - string to check validity of
@@ -241,5 +310,13 @@ public class Quiz implements ActionListener{
 			}
 		}
 		return true;
+	}
+
+	private void appendHint(String word) {
+		JTextArea temp = _parent.getPreviousInput();
+		for (int i = 0; i < word.length(); i++) {
+			temp.append("_ ");
+		}
+		temp.append("\n");
 	}
 }
