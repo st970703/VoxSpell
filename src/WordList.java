@@ -85,7 +85,7 @@ public class WordList {
 	 * @return - int containing the number of levels in the word list
 	 */
 	public int numOfLevels() {
-		WordList temp = new WordList(_listFile, QuizType.NEW);
+		WordList temp = new WordList(new File("./NZCER-spelling-lists.txt"), QuizType.NEW);
 
 		ArrayList<ArrayList<String>> tempList = temp.getWords();
 

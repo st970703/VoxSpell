@@ -554,9 +554,11 @@ public class SpellingAid implements ActionListener {
 				if (_level < _wordSource.numOfLevels()) {
 					_level++;
 				}
+				enableAllButtons();
 				showWindow();
 				break;
 			} else if (n == 1) {
+				enableAllButtons();
 				showWindow();
 				window.setResizable(false);
 				break;

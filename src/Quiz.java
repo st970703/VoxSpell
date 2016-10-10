@@ -141,7 +141,7 @@ public class Quiz implements ActionListener{
 			temp.add("Quiz is finished.");
 			sayWord(temp, 1.5);
 
-			_inputRecord.clear();
+			//_inputRecord.clear();
 			
 			_parent.disableInput();
 			// call method in spellingaid to potentially shift up levels
