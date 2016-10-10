@@ -199,7 +199,7 @@ public class Quiz implements ActionListener{
 	 * Uses festival to pronounce the string passed in.
 	 * @param word - a String containing what you want to pronounce
 	 */
-	private void sayWord(final ArrayList<String> wordAL, double pace) {
+	private void sayWord(final ArrayList<String> wordAL, final double pace) {
 		if (wordAL != null & wordAL.size() > 0) {
 			if (pace <= 2.2 && pace >= 0.8) {
 				// disable relisten and input textfield

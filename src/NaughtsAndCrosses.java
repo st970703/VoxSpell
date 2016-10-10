@@ -101,7 +101,7 @@ public class NaughtsAndCrosses extends JFrame {
 		this.setVisible(true);
 		_sa.hideWindow();
 
-		NaughtsAndCrosses game = this;
+		final NaughtsAndCrosses game = this;
 
 		AbstractAction gameAction = new AbstractAction(){
 			@Override

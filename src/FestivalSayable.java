@@ -11,7 +11,7 @@ public abstract class FestivalSayable {
 	 * Uses festival to pronounce the string passed in.
 	 * @param word - a String containing what you want to pronounce
 	 */
-	public static void sayWord(final ArrayList<String> wordAL, double pace, String voice) {
+	public static void sayWord(final ArrayList<String> wordAL, final double pace, final String voice) {
 		if (wordAL != null & wordAL.size() > 0) {
 			if (pace <= 2.2 && pace >= 0.8) {
 
