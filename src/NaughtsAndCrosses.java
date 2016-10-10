@@ -57,7 +57,7 @@ public class NaughtsAndCrosses extends JFrame {
 	private JLabel _noOfNWins = new JLabel(String.valueOf(_naughtWins));
 	private JLabel _noOfCWins = new JLabel(String.valueOf(_crossWins));
 	private JLabel _noOfDraws = new JLabel(String.valueOf(_draws));
-
+	
 	public NaughtsAndCrosses(SpellingAid sa) {
 
 		// set all fonts
@@ -130,10 +130,17 @@ public class NaughtsAndCrosses extends JFrame {
 					}
 
 					if (status==GameStatus.CROSS_WON){
+						
+						ArrayList<String> temp = new ArrayList<String>();
+						temp.add("Crosses wins??");
+						FestivalSayable.sayWord(temp, 1.0, _sa.getVoice());
 						_crossWins++;
 						_noOfCWins.setText(String.valueOf(_crossWins));
 						return;
 					} else {
+						ArrayList<String> temp = new ArrayList<String>();
+						temp.add("Naughts wins??");
+						FestivalSayable.sayWord(temp, 1.0, _sa.getVoice());
 						_naughtWins++;
 						_noOfNWins.setText(String.valueOf(_naughtWins));
 						return;
@@ -148,7 +155,11 @@ public class NaughtsAndCrosses extends JFrame {
 						}
 					}
 				}
-
+				
+				ArrayList<String> temp = new ArrayList<String>();
+				temp.add("Draws are unacceptable??");
+				FestivalSayable.sayWord(temp, 1.0, _sa.getVoice());
+				
 				_draws++;
 				_noOfDraws.setText(String.valueOf(_draws));
 
@@ -178,6 +189,10 @@ public class NaughtsAndCrosses extends JFrame {
 						_board[row][col].setEnabled(true);
 					}
 				}
+				
+				ArrayList<String> temp = new ArrayList<String>();
+				temp.add("new game??");
+				FestivalSayable.sayWord(temp, 1.0, _sa.getVoice());
 
 			}
 
@@ -203,6 +218,9 @@ public class NaughtsAndCrosses extends JFrame {
 				_noOfDraws.setFont(new Font("Yu Gothic Medium", Font.BOLD, 16));
 				_noOfDraws.setText(String.valueOf(_draws));
 
+				ArrayList<String> temp = new ArrayList<String>();
+				temp.add("scores reset??");
+				FestivalSayable.sayWord(temp, 1.0, _sa.getVoice());
 			}
 
 		});

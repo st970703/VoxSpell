@@ -67,8 +67,8 @@ public class Quiz implements ActionListener{
 			while (_words.contains(tempList.get(pos = (int)(Math.random() * tempList.size())))) { }
 			_words.add(tempList.get(pos));
 		}
-	}
-
+	}	
+	
 	/**
 	 * If there are more words left to test, calls sayWord with the next word, prefixing it with the provided line. If all the words have 
 	 * been tested, the method notifies the user that the quiz is finished and calls {@link SpellingAid#levelCompleted()} if enough words
@@ -84,7 +84,17 @@ public class Quiz implements ActionListener{
 			_attempts = 0;
 
 			_previousWords.add(_wordCount - 1);
-			if (line == null) {
+			if (line.equals("New Spelling Quiz") || line.equals("Review Mistakes") ) {
+				appendHint(_words.get(_wordCount - 1));
+
+				ArrayList<String> temp = new ArrayList<String>();
+				temp.add(line);
+				temp.add("please spell");
+				temp.add(_words.get(_wordCount - 1));
+				sayWord(temp, 1.5);
+			}
+			/*if (line == null) {
+				System.out.println("if (line == null) {  btn pressed");
 				appendHint(_words.get(_wordCount - 1));
 
 				ArrayList<String> temp = new ArrayList<String>(); 
@@ -92,16 +102,16 @@ public class Quiz implements ActionListener{
 				temp.add(_words.get(_wordCount - 1));
 				sayWord(temp, 1.5);
 
-			} else {
+			}*/ else {
 				String copyLine = line;
 				copyLine = copyLine.replace(" ", "");
 				copyLine = copyLine.replace(".", "");
 				_parent.appendPreviousInput(copyLine+"\n");
-				//test
+				
 				long endTime = System.nanoTime();
 
 				long duration = (endTime - startTime);  
-				_parent.appendPreviousInput( "Took "+duration/1000000000 +" second/s.\n");
+				_parent.appendPreviousInput( "Took "+duration/1000000000 +" second/s.\n\n");
 
 				_parent.appendPreviousInput("Please spell:   ");
 				appendHint(_words.get(_wordCount - 1) );
@@ -114,11 +124,18 @@ public class Quiz implements ActionListener{
 			}
 			return true;
 		} else {
-			_parent.appendPreviousInput("Quiz is finished.\n");
+			
+			String copyLine = line;
+			copyLine = copyLine.replace(" ", "");
+			copyLine = copyLine.replace(".", "");
+			_parent.appendPreviousInput(copyLine+"\n");
+			
+			_parent.appendPreviousInput("\nQuiz is finished.\n");
 			_parent.enableAllButtons();
 			_parent.updateProgressBar(100);
 
-			ArrayList<String> temp = new ArrayList<String>(); 
+			ArrayList<String> temp = new ArrayList<String>();
+			temp.add(line);
 			temp.add("Quiz is finished.");
 			sayWord(temp, 1.5);
 
@@ -163,13 +180,14 @@ public class Quiz implements ActionListener{
 	public void spellWord() {
 		String word = _words.get(_previousWords.get(_previousWords.size() - 1));
 		String spelling = word + " is spelled ... ";
-
-		for (int i = 0; i < word.length(); i++) {
-			spelling += word.charAt(i) + " ... ";
-		}
-
+		
 		ArrayList<String> temp = new ArrayList<String>(); 
 		temp.add(spelling);
+		
+		for (int i = 0; i < word.length(); i++) {
+			temp.add(Character.toString(word.charAt(i)) );
+		}
+
 		sayWord(temp, 2.2);
 	}
 
@@ -256,7 +274,7 @@ public class Quiz implements ActionListener{
 			// do nothing
 		} else {
 			String userWord = trimSpaces(e.getActionCommand());
-			//test
+			
 			if (!userWord.equals("") && !userWord.equals("\n") ) {
 				_parent.appendPreviousInput("You enetered:   "+ userWord + "\n");
 			}
