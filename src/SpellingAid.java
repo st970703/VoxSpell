@@ -305,6 +305,9 @@ public class SpellingAid implements ActionListener {
 		temp.add("level "+_level+ "selected??");
 		temp.add("Please select one of the options to the left??");
 		FestivalSayable.sayWord(temp, 1.0, _voice);
+		
+		//test
+		levelCompleted();
 
 	}
 
@@ -649,7 +652,7 @@ public class SpellingAid implements ActionListener {
 			@Override
 			protected Void doInBackground() throws Exception {
 				if (!_aechoVideoFile.exists()) {
-					ProcessBuilder pb = new ProcessBuilder("bash", "-c", "ffmpeg -i " +_videoFile.getName()+ " -af aecho "+_aechoVideoFile.getName());
+					ProcessBuilder pb = new ProcessBuilder("bash", "-c", "ffmpeg -i " +_videoFile.getName()+ " -af aecho -vf hue=s=0 "+_aechoVideoFile.getName());
 					@SuppressWarnings("unused")
 					Process pro = pb.start();
 				}
