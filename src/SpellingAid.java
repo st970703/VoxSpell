@@ -102,6 +102,9 @@ public class SpellingAid implements ActionListener {
 	}
 
 	public void appendPreviousInput(String string) {
+		if (string.contains("ReviewMistakes")) {
+			return;
+		}
 		this.previousInput.append(string);
 	}
 
@@ -156,22 +159,21 @@ public class SpellingAid implements ActionListener {
 		relistenToWord.setIcon(new ImageIcon(SpellingAid.class.getResource("/javax/swing/plaf/basic/icons/JavaCup16.png")));
 		relistenToWord.addActionListener(this);
 
-		newQuizBtn.addActionListener(this);
+		enableAllButtons();
+
+		inputText.addActionListener(this);
+
 		newQuizBtn.setIcon(new ImageIcon(SpellingAid.class.getResource("/javax/swing/plaf/metal/icons/ocean/question.png")));
 		newQuizBtn.setBackground(Color.GREEN);
 
-		viewStatsBtn.addActionListener(this);
 		viewStatsBtn.setIcon(new ImageIcon(SpellingAid.class.getResource("/javax/swing/plaf/metal/icons/ocean/info.png")));
 
 		reviewMistakesBtn.setIcon(new ImageIcon(SpellingAid.class.getResource("/javax/swing/plaf/metal/icons/ocean/computer.gif")));
-		reviewMistakesBtn.addActionListener(this);
 
 		clearStatsBtn.setIcon(new ImageIcon(SpellingAid.class.getResource("/javax/swing/plaf/metal/icons/ocean/error.png")));
 		clearStatsBtn.setBackground(Color.red);
 		clearStatsBtn.setToolTipText("Are you sure?");
-		clearStatsBtn.addActionListener(this);
 
-		inputText.addActionListener(this);
 		inputText.setEnabled(false);
 		inputText.setFont(new Font("Yu Gothic Medium", Font.BOLD, 16));
 
@@ -300,14 +302,11 @@ public class SpellingAid implements ActionListener {
 		SwingUtilities.updateComponentTreeUI(window);
 
 		window.setVisible(true);
-		
+
 		ArrayList<String> temp = new ArrayList<String>();
 		temp.add("level "+_level+ "selected??");
 		temp.add("Please select one of the options to the left??");
 		FestivalSayable.sayWord(temp, 1.0, _voice);
-		
-		//test
-		levelCompleted();
 
 	}
 
@@ -320,7 +319,7 @@ public class SpellingAid implements ActionListener {
 		Object action = e.getSource();
 
 		if (action.equals(newQuizBtn)) {
-			
+
 			removeQuizListeners();
 			_currentQuiz = new Quiz(_level, this, _wordSource); // change the input number here to change level for now
 			inputText.addActionListener(_currentQuiz);
@@ -334,10 +333,12 @@ public class SpellingAid implements ActionListener {
 			previousInput.append("Please spell:   ");
 			inputText.requestFocusInWindow();
 			boolean status = _currentQuiz.sayNextWord(newQuizBtn.getText() );
-			disableOtherButtons(newQuizBtn);
+
+			disableAllButtons();
+
 			if (!status) { inputText.setEnabled(false); };
 		} else if (action.equals(reviewMistakesBtn)) {
-			
+
 			removeQuizListeners();
 			_currentQuiz = new Quiz( _level, this, _failedWords);
 			inputText.addActionListener(_currentQuiz);
@@ -351,17 +352,19 @@ public class SpellingAid implements ActionListener {
 			previousInput.append("Please spell:   ");
 			inputText.requestFocusInWindow();
 			boolean status = _currentQuiz.sayNextWord(reviewMistakesBtn.getText() );
-			disableOtherButtons(reviewMistakesBtn);
+
+			disableAllButtons();
+
 			if (!status) {
 				inputText.setEnabled(false);
 				previousInput.setText(previousInput.getText().replace("Please spell:   ", "") );
 			} 
 		} else if (action.equals(viewStatsBtn)) {
-			
+
 			ArrayList<String> temp = new ArrayList<String>();
 			temp.add(viewStatsBtn.getText()+"??");
 			FestivalSayable.sayWord(temp, 1.0, _voice);
-			
+
 			hideProgressBar();
 			instructions.setText("");
 			previousInput.setText("View Statistics for Level "+_level+"\n\n");
@@ -372,11 +375,11 @@ public class SpellingAid implements ActionListener {
 				previousInput.append(line);
 			}
 		} else if (action.equals(clearStatsBtn)) {
-			
+
 			ArrayList<String> temp = new ArrayList<String>();
 			temp.add(clearStatsBtn.getText()+"??");
 			FestivalSayable.sayWord(temp, 1.0, _voice);
-			
+
 			hideProgressBar();
 			instructions.setText("");
 			previousInput.setText("All Statistics Cleared!!");
@@ -528,7 +531,7 @@ public class SpellingAid implements ActionListener {
 				int level = Integer.parseInt(answer.split(" ")[1]);
 				if (level <= _wordSource.numOfLevels() ) {
 					_level = level;
-					
+
 					break;
 				}
 			}
@@ -544,7 +547,7 @@ public class SpellingAid implements ActionListener {
 		Object[] options = {"Move up a Spelling level", "Stay at current Spelling level", "Play reward video", "Play reward video with Echo Effect", "Play Tic-Tac-Toe", "Play music"};
 
 		while (true) {
-			
+
 			int n = JOptionPane.showOptionDialog(window, "Please select an option:", "Congratulations!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
 			if (n == 0) {
@@ -682,22 +685,31 @@ public class SpellingAid implements ActionListener {
 	 * disableOtherButtons(JButton exceptionButton) disables all other buttons apart from the given one.
 	 * @param exceptionButton
 	 */
-	public void disableOtherButtons(JButton exceptionButton) {
-		newQuizBtn.setEnabled(false);
-		reviewMistakesBtn.setEnabled(false);
-		viewStatsBtn.setEnabled(false);
-		clearStatsBtn.setEnabled(false);
-		exceptionButton.setEnabled(true);
+	public void disableAllButtons() {
+
+		newQuizBtn.removeActionListener(this);
+
+		reviewMistakesBtn.removeActionListener(this);
+
+		viewStatsBtn.removeActionListener(this);
+
+		clearStatsBtn.removeActionListener(this);
+
+		//exceptionButton.addActionListener(this);
 	}
 
 	/**
 	 * enableAllButtons() enables the four main JButtons.
 	 */
 	public void enableAllButtons() {
-		newQuizBtn.setEnabled(true);
-		reviewMistakesBtn.setEnabled(true);
-		viewStatsBtn.setEnabled(true);
-		clearStatsBtn.setEnabled(true);
+
+		newQuizBtn.addActionListener(this);
+
+		reviewMistakesBtn.addActionListener(this);
+
+		viewStatsBtn.addActionListener(this);
+
+		clearStatsBtn.addActionListener(this);
 	}
 
 	/**

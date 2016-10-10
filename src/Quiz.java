@@ -29,6 +29,8 @@ public class Quiz implements ActionListener{
 	private WordList _wordList;
 	private long startTime;
 
+	private ArrayList<String> _inputRecord = new ArrayList<String>();
+	
 	/**
 	 * Initializes fields, selects words for the quiz, and checks that there are enough words to perform a quiz.
 	 * @param level - the spelling level of the quiz to be created
@@ -139,6 +141,8 @@ public class Quiz implements ActionListener{
 			temp.add("Quiz is finished.");
 			sayWord(temp, 1.5);
 
+			_inputRecord.clear();
+			
 			_parent.disableInput();
 			// call method in spellingaid to potentially shift up levels
 			if (_masteredWords >= 9 && _wordList.getQuizType() == QuizType.NEW) {
@@ -274,9 +278,16 @@ public class Quiz implements ActionListener{
 			// do nothing
 		} else {
 			String userWord = trimSpaces(e.getActionCommand());
-			
+			// Prevents multiple entering of the same word
+			if (_inputRecord.size() > 0 ) {
+				if (userWord.equals(_inputRecord.get(_inputRecord.size()-1) ) ) {
+					return;
+				}
+			}
+
 			if (!userWord.equals("") && !userWord.equals("\n") ) {
 				_parent.appendPreviousInput("You enetered:   "+ userWord + "\n");
+				_inputRecord.add(userWord);
 			}
 
 			_attempts++;
