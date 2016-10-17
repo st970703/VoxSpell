@@ -12,6 +12,9 @@ Tips:
 5. If you want to load your own file, it is best if you can copy it into the current directory first and select this specific copy.
 This reduces the possibility of errors when the programs tries to read the file.
 
+Target USer:
+The target user is a second language user.
+
 Copyright:
 This software is copyrighted by the University of Auckland and the developers.
 The rights controlled are the copy, distribution, modification, and commercialisation in the future.
