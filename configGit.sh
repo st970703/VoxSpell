@@ -1,4 +1,4 @@
-cd ~/Desktop/206_A3_G6_ML_WL-Master/
+cd ~/Desktop/206_A3_G6_ML_WL-master/206_A3
 
 git init
 
