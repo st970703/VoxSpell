@@ -100,17 +100,7 @@ public class Quiz implements ActionListener{
 				temp.add(_words.get(_wordCount - 1));
 				sayWord(temp);
 
-			}
-			/*if (line == null) {
-				System.out.println("if (line == null) {  btn pressed");
-				appendHint(_words.get(_wordCount - 1));
-
-				ArrayList<String> temp = new ArrayList<String>(); 
-				temp.add("please spell");
-				temp.add(_words.get(_wordCount - 1));
-				sayWord(temp, 1.5);
-
-			}*/ else {
+			} else {
 				String copyLine = line;
 				copyLine = copyLine.replace(" ", "");
 				copyLine = copyLine.replace(".", "");
@@ -239,7 +229,7 @@ public class Quiz implements ActionListener{
 							bw.write("( Parameter.set  'Duration_Stretch  "+pace+" )");
 
 							for (String s : wordAL) {
-								bw.write("( SayText \"" + s +"\" ) \n");
+								bw.write("( SayText \"" + s +"??\" ) \n");
 								bw.flush();
 							}
 
@@ -260,23 +250,23 @@ public class Quiz implements ActionListener{
 					}
 					@Override
 					public void done() {
-						if (wordAL.contains("Quiz is finished.") ) {
-							_parent.disableInput();
-							_parent.enableAllButtons();
-						} else {
-							_parent.enableInput();
-							_parent.focusOnJPanel();
+
+						for (String str : wordAL) {
+							if (str.contains("please spell") ) {
+								startTime = System.nanoTime();
+							}
+							if (str.contains("Quiz is finished") ) {
+								_parent.disableInput();
+								_parent.enableAllButtons();
+							} else {
+								_parent.enableInput();
+								_parent.focusOnJPanel();
+							}
 						}
 					}
 				};
 
 				worker.execute();
-				
-				for (String str : wordAL) {
-					if (str.contains("please spell") ) {
-						startTime = System.nanoTime();
-					}
-				}
 
 			}
 
