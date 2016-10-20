@@ -2,6 +2,7 @@ package voxSpell.GUI;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -102,6 +103,8 @@ public class SpellingAid implements ActionListener {
 		inputText.setEnabled(true);
 	}
 
+	private JButton helpBtn = new JButton("Help");
+	
 	private JButton newQuizBtn = new JButton("New Spelling Quiz");
 	private JButton reviewMistakesBtn = new JButton("Review Mistakes");
 	private JButton viewStatsBtn = new JButton("View Statistics");
@@ -235,6 +238,11 @@ public class SpellingAid implements ActionListener {
 		clearStatsBtn.setBackground(Color.red);
 		clearStatsBtn.setToolTipText("Are you sure?");
 		
+		helpBtn.setIcon(new ImageIcon("./libs/1476952851_circle-info-more-information-detail-outline-stroke.png"));
+		helpBtn.setFont(helpBtn.getFont().deriveFont(Font.BOLD));
+		helpBtn.addActionListener(this);
+		helpBtn.setBackground(Color.orange);
+		
 		inputText.addActionListener(this);
 		inputText.setEnabled(false);
 		inputText.setFont(new Font("Yu Gothic Medium", Font.BOLD, 16));
@@ -247,6 +255,7 @@ public class SpellingAid implements ActionListener {
 		menuBtns.add(reviewMistakesBtn);
 		menuBtns.add(viewStatsBtn);
 		menuBtns.add(clearStatsBtn);
+		menuBtns.add(helpBtn);
 
 		menuPanel.add(menuTitle, BorderLayout.NORTH);
 		menuPanel.add(menuBtns, BorderLayout.CENTER);
@@ -476,6 +485,22 @@ public class SpellingAid implements ActionListener {
 			// change the festival speed
 			_speed = (double)speedCBox.getSelectedItem();
 			inputText.requestFocusInWindow();
+		} else if (action.equals(helpBtn)) {
+			//say the help message
+			ArrayList<String> temp = new ArrayList<String>();
+			temp.add(helpBtn.getText()+"??");
+			FestivalSayable.sayWord(temp, _speed, _voice);
+			// show the pdf manual
+			if (Desktop.isDesktopSupported()) {
+			    try {
+			        File manualFile = new File("./Voxspell_User_Manual.pdf");
+			        Desktop.getDesktop().open(manualFile);
+			    } catch (IOException ex) {
+			        // no application registered for PDFs
+			    }
+			} else {
+	            System.out.println("Open is not supported");
+	        }
 		} else {
 			// clear the JTextField
 			inputText.setText("");
@@ -651,14 +676,14 @@ public class SpellingAid implements ActionListener {
 				showWindow();
 				
 				ArrayList<String> temp = new ArrayList<String>();
-				temp.add("PLease spell one of the options??");
+				temp.add("PLease select one of the options??");
 				FestivalSayable.sayWord(temp, _speed, _voice);
 				
 				break;
 			} else if (n == 1) {
 				
 				ArrayList<String> temp = new ArrayList<String>();
-				temp.add("PLease spell one of the options??");
+				temp.add("PLease select one of the options??");
 				FestivalSayable.sayWord(temp, _speed, _voice);
 				
 				enableAllButtons();
