@@ -10,8 +10,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -79,7 +82,7 @@ public class SpellingAid implements ActionListener {
 	private ArrayList<String> voiceOptions = new ArrayList<String>();
 	private String _voice;
 	private double _speed = 1.0;
-	
+
 	/**
 	 * a getter method to return the double value of _speed.
 	 * @return
@@ -104,7 +107,7 @@ public class SpellingAid implements ActionListener {
 	}
 
 	private JButton helpBtn = new JButton("Help");
-	
+
 	private JButton newQuizBtn = new JButton("New Spelling Quiz");
 	private JButton reviewMistakesBtn = new JButton("Review Mistakes");
 	private JButton viewStatsBtn = new JButton("View Statistics");
@@ -171,7 +174,7 @@ public class SpellingAid implements ActionListener {
 	private JScrollPane previousInputScroll;
 
 	private JFrame window;
-	
+
 	/**
 	 * show the main GUI
 	 */
@@ -199,7 +202,7 @@ public class SpellingAid implements ActionListener {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public SpellingAid() {
-		
+
 		// set the default voice
 		_voice = "kal_diphone";
 		// say the welcome message
@@ -237,12 +240,12 @@ public class SpellingAid implements ActionListener {
 		clearStatsBtn.setIcon(new ImageIcon(SpellingAid.class.getResource("/javax/swing/plaf/metal/icons/ocean/error.png")));
 		clearStatsBtn.setBackground(Color.red);
 		clearStatsBtn.setToolTipText("Are you sure?");
-		
+
 		helpBtn.setIcon(new ImageIcon("./libs/1476952851_circle-info-more-information-detail-outline-stroke.png"));
 		helpBtn.setFont(helpBtn.getFont().deriveFont(Font.BOLD));
 		helpBtn.addActionListener(this);
 		helpBtn.setBackground(Color.orange);
-		
+
 		inputText.addActionListener(this);
 		inputText.setEnabled(false);
 		inputText.setFont(new Font("Yu Gothic Medium", Font.BOLD, 16));
@@ -276,11 +279,11 @@ public class SpellingAid implements ActionListener {
 
 		textAndButton.add(inputText);
 		textAndButton.add(relistenToWord);
-		
+
 		//add speedCBox
 		configureVoiceSpeed();
 		textAndButton.add(speedCBox);
-	
+
 		inputArea.add(textAndButton);
 		previousInputScroll = new JScrollPane(previousInput);
 
@@ -383,7 +386,7 @@ public class SpellingAid implements ActionListener {
 		temp.add("level "+_level+ "selected??");
 		temp.add("Please select one of the options??");
 		FestivalSayable.sayWord(temp, _speed, _voice);
-		
+
 	}
 
 	/**
@@ -470,7 +473,7 @@ public class SpellingAid implements ActionListener {
 			} else {
 				return;
 			}		
-			
+
 		} else if (action.equals(relistenToWord)) {
 			// repeat the word in festival
 			if (_currentQuiz != null) {
@@ -492,15 +495,15 @@ public class SpellingAid implements ActionListener {
 			FestivalSayable.sayWord(temp, _speed, _voice);
 			// show the pdf manual
 			if (Desktop.isDesktopSupported()) {
-			    try {
-			        File manualFile = new File("./Voxspell_User_Manual.pdf");
-			        Desktop.getDesktop().open(manualFile);
-			    } catch (IOException ex) {
-			        // no application registered for PDFs
-			    }
+				try {
+					File manualFile = new File("./Voxspell_User_Manual.pdf");
+					Desktop.getDesktop().open(manualFile);
+				} catch (IOException ex) {
+					// no application registered for PDFs
+				}
 			} else {
-	            System.out.println("Open is not supported");
-	        }
+				System.out.println("Open is not supported");
+			}
 		} else {
 			// clear the JTextField
 			inputText.setText("");
@@ -520,15 +523,58 @@ public class SpellingAid implements ActionListener {
 		chooser.setDialogTitle("Choose Your Own Word List?");
 		int returnVal = chooser.showOpenDialog((JFrame)window.getParent());
 		if(returnVal == JFileChooser.APPROVE_OPTION) {
-			_wordSource = new WordList(new File(chooser.getSelectedFile().getAbsolutePath()), QuizType.NEW);
-			// show an example of the expected format
-			JOptionPane.showMessageDialog(window, "Your word list must be in this format:\n%Level 1\na\nI\nit\nthe\nwas\nand\nin\nmy\nto\nwe\n......\nOtherwise errors may occur!!");
-		}
-		if (_wordSource == null) {
+			File tempFile = new File(chooser.getSelectedFile().getAbsolutePath());
+			// verify the format right away
+			if (verifyWordList(tempFile) == false) {
+				// warn the user about the error 
+				ArrayList<String> temp = new ArrayList<String>();
+				temp.add("word list format incorrect??");
+				FestivalSayable.sayWord(temp, _speed, _voice);
+							
+				// reload option, call this method recursively
+				chooseOwnList();
+				return;
+			} 
+			// show an example of the expected format and ask for confirmation
+			//JOptionPane.showConfirmDialog(window, "Your word list must be in this format:\n%Level 1\na\nI\nit\nthe\nwas\nand\nin\nmy\nto\nwe\n......\nOtherwise errors may occur!!");
+			String[] buttons = {"Confirm", "Reload"};
+			String formatMessage = "Your word list must be in this format:\n%Level 1\na\nI\nit\nthe\nwas\nand\nin\nmy\nto\nwe\n......\nOtherwise errors may occur!!";
+			int rc = JOptionPane.showOptionDialog(null, formatMessage, "Format is Important!!", JOptionPane.WARNING_MESSAGE, 0, null, buttons, buttons[1]);
+			if (rc == 1) {
+				// reload option, call this method recursively
+				chooseOwnList();
+				return;
+			} else {
+				_wordSource = new WordList( tempFile, QuizType.NEW);
+			}
+		} else {
+			// _wordSource == null
 			// use the default word list if nothing chosen
 			_wordSource = new WordList(new File("NZCER-spelling-lists.txt"), QuizType.NEW);
 		}
 	}
+	
+	/**
+	 * verifyWordList(File file) verifies the word list file with limited checking logic.
+	 * @param file
+	 * @return
+	 */
+	private boolean verifyWordList(File file) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(file.getAbsoluteFile()));
+			
+			if (br.readLine().contains("%Level")) {
+				br.close();
+				return true;
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
 
 	/**
 	 * chooseOwnMusic() uses JFileChooser to allow the user to select an mp3 file.
@@ -660,7 +706,7 @@ public class SpellingAid implements ActionListener {
 	 * @editor Mike Lee
 	 */
 	public void levelCompleted() {
-		
+
 		//create pop up to ask user either move up, stay at level, or play video
 		Object[] options = {"Move up a Spelling level", "Stay at current Spelling level", "Play reward video", "Play reward video with Echo Effect", "Play Tic-Tac-Toe", "Play music"};
 
@@ -674,18 +720,18 @@ public class SpellingAid implements ActionListener {
 				}
 				enableAllButtons();
 				showWindow();
-				
+
 				ArrayList<String> temp = new ArrayList<String>();
 				temp.add("PLease select one of the options??");
 				FestivalSayable.sayWord(temp, _speed, _voice);
-				
+
 				break;
 			} else if (n == 1) {
-				
+
 				ArrayList<String> temp = new ArrayList<String>();
 				temp.add("PLease select one of the options??");
 				FestivalSayable.sayWord(temp, _speed, _voice);
-				
+
 				enableAllButtons();
 				showWindow();
 				window.setResizable(false);
@@ -832,29 +878,29 @@ public class SpellingAid implements ActionListener {
 	 * enableAllButtons() enables the four main JButtons.
 	 */
 	public void enableAllButtons() {
-		
+
 		ActionListener[] temp1 = newQuizBtn.getActionListeners();	
 		if (!checkThisAsListener(temp1) ) {
 			newQuizBtn.addActionListener(this);
 		}
-		
+
 		ActionListener[] temp2 = reviewMistakesBtn.getActionListeners();
 		if (!checkThisAsListener(temp2) ) {
 			reviewMistakesBtn.addActionListener(this);
 		}
-			
+
 		ActionListener[] temp3 = viewStatsBtn.getActionListeners();
 		if (!checkThisAsListener(temp3) ) {
 			viewStatsBtn.addActionListener(this);
 		}
-			
+
 		ActionListener[] temp4 = clearStatsBtn.getActionListeners();
 		if (!checkThisAsListener(temp4) ) {
 			clearStatsBtn.addActionListener(this);
 		}
 
 	}
-	
+
 	/**
 	 * checkThisAsListener checks if this class is contained as an action listener in the array given.
 	 * @param temp
@@ -873,16 +919,16 @@ public class SpellingAid implements ActionListener {
 	 * configureVoiceSpeed() is a private helper method that configures the voice speed ComboBox.
 	 */
 	private void configureVoiceSpeed() {
-		
+
 		Double[] tempArray = {0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2};	
-		
+
 		speedCBox = new JComboBox<Double>(tempArray);
 		speedCBox.addActionListener(this);
 		speedCBox.setFont(speedCBox.getFont().deriveFont(Font.BOLD));
 		speedCBox.setToolTipText(tempArray.length+" speeds available");
-		
+
 	}
-	
+
 	/**
 	 * Main static method to run the GUI.
 	 */
