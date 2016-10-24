@@ -10,11 +10,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -562,12 +560,18 @@ public class SpellingAid implements ActionListener {
 	private boolean verifyWordList(File file) {
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(file.getAbsoluteFile()));
+			String firstLine = br.readLine();
 			
-			if (br.readLine().contains("%Level")) {
+			if (firstLine == null) {
+				br.close();
+				return false;
+			}
+			
+			if (firstLine.contains("%Level")) {
 				br.close();
 				return true;
 			}
-			
+			br.close();			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
